@@ -8,6 +8,8 @@
 #include "RankManager.h"
 #include <thread>
 #include <atomic>
+#include "OSSupport/IsThread.h"
+#include "OSSupport/Queue.h"
 
 
 
@@ -181,9 +183,58 @@ public:
 	/** Returns the amount of virtual RAM used, in KiB. Returns a negative number on error */
 	static int GetPhysicalRAMUsage(void);
 
+	void CreateWorld(const AString & a_WorldName);
+
 	// tolua_end
 
 private:
+
+	class cWorldInitializerWorkItem
+	{
+	public:
+		cWorldInitializerWorkItem(const AString & a_WorldName, cWorld * a_World) : m_WorldName(a_WorldName), m_World(a_World) {};
+		AString m_WorldName;
+		cWorld * m_World;
+	};
+
+	// Thread to create worlds in
+	// Maintains a queue of worlds that need their spawns initialized.
+	class cWorldCreatorThread :
+		public cIsThread
+	{
+		typedef cIsThread super;
+	public:
+		cWorldCreatorThread();
+
+		void QueueInitializeWorld(const AString & a_WorldName, cWorld * a_World)
+		{
+			m_WorkQueue.EnqueueItem({a_WorldName, a_World});
+			m_Event.Set();
+		}
+
+		void Stop(void)
+		{
+			// Wait to finish the work queue
+			m_WorkQueue.BlockTillEmpty();
+
+			// Wait for the thread to finish
+			m_ShouldTerminate = true;
+			m_Event.Set();  // In case the thread is waiting
+			super::Wait();
+		}
+
+	protected:
+		virtual void Execute(void) override;
+
+	private:
+		cQueue<cWorldInitializerWorkItem> m_WorkQueue;
+		cEvent m_Event;
+	};
+
+	cWorldCreatorThread m_WorldCreatorThread;
+	void NotifyWorldInitialized(const cWorldInitializerWorkItem & a_Initialized);
+
+
 	class cCommand
 	{
 	public:
@@ -200,11 +251,18 @@ private:
 	typedef std::map<AString, cWorld *> WorldMap;
 	typedef std::vector<cCommand> cCommandQueue;
 
+	cCriticalSection m_CSWorldsByName;
 	cWorld * m_pDefaultWorld;
 	WorldMap m_WorldsByName;
 
 	cCriticalSection m_CSPendingCommands;
 	cCommandQueue    m_PendingCommands;
+
+	//cCriticalSection m_CSWorldOps;
+	//std::vector<AString> m_PendingWorldCreations;
+	cQueue<cWorldInitializerWorkItem> m_InitializedWorldQueue;
+
+	cDeadlockDetect * m_DeadlockDetect;
 
 	std::thread m_InputThread;
 	cEvent m_StopEvent;

@@ -138,6 +138,7 @@ void cRoot::Start(std::unique_ptr<cSettingsRepositoryInterface> a_OverridesRepo)
 	#endif
 
 	cDeadlockDetect dd;
+	m_DeadlockDetect = &dd;
 	auto BeginTime = std::chrono::steady_clock::now();
 
 	LoadGlobalSettings();
@@ -206,6 +207,7 @@ void cRoot::Start(std::unique_ptr<cSettingsRepositoryInterface> a_OverridesRepo)
 
 	LOGD("Starting worlds...");
 	StartWorlds(dd);
+	m_WorldCreatorThread.Start();
 
 	if (settingsRepo->GetValueSetB("DeadlockDetect", "Enabled", true))
 	{
@@ -262,6 +264,8 @@ void cRoot::Start(std::unique_ptr<cSettingsRepositoryInterface> a_OverridesRepo)
 	}
 
 	delete m_MojangAPI; m_MojangAPI = nullptr;
+
+	m_WorldCreatorThread.Stop();
 
 	LOGD("Shutting down deadlock detector...");
 	dd.Stop();
@@ -391,21 +395,22 @@ void cRoot::LoadGlobalSettings()
 
 void cRoot::LoadWorlds(cSettingsRepositoryInterface & a_Settings, bool a_IsNewIniFile)
 {
+	cCSLock Lock(m_CSWorldsByName);
 	if (a_IsNewIniFile)
 	{
 		a_Settings.AddValue("Worlds", "DefaultWorld", "world");
 		a_Settings.AddValue("Worlds", "World", "world_nether");
 		a_Settings.AddValue("Worlds", "World", "world_the_end");
-		m_pDefaultWorld = new cWorld("world");
+		m_pDefaultWorld = new cWorld("world", "world");
 		m_WorldsByName["world"] = m_pDefaultWorld;
-		m_WorldsByName["world_nether"] = new cWorld("world_nether", dimNether, "world");
-		m_WorldsByName["world_the_end"] = new cWorld("world_the_end", dimEnd, "world");
+		m_WorldsByName["world_nether"] = new cWorld("world_nether", "world_nether", dimNether, "world");
+		m_WorldsByName["world_the_end"] = new cWorld("world_the_end", "world_the_end", dimEnd, "world");
 		return;
 	}
 
 	// First get the default world
 	AString DefaultWorldName = a_Settings.GetValueSet("Worlds", "DefaultWorld", "world");
-	m_pDefaultWorld = new cWorld(DefaultWorldName.c_str());
+	m_pDefaultWorld = new cWorld(DefaultWorldName.c_str(), DefaultWorldName.c_str());
 	m_WorldsByName[ DefaultWorldName ] = m_pDefaultWorld;
 	auto Worlds = a_Settings.GetValues("Worlds");
 
@@ -469,7 +474,7 @@ void cRoot::LoadWorlds(cSettingsRepositoryInterface & a_Settings, bool a_IsNewIn
 			{
 				LinkTo = DefaultWorldName;
 			}
-			NewWorld = new cWorld(WorldName.c_str(), dimNether, LinkTo);
+			NewWorld = new cWorld(WorldName.c_str(), WorldName.c_str(), dimNether, LinkTo);
 		}
 		// if the world is called x_the_end
 		else if ((LowercaseName.size() > EndAppend1.size()) && (LowercaseName.substr(LowercaseName.size() - EndAppend1.size()) == EndAppend1))
@@ -483,7 +488,7 @@ void cRoot::LoadWorlds(cSettingsRepositoryInterface & a_Settings, bool a_IsNewIn
 			{
 				LinkTo = DefaultWorldName;
 			}
-			NewWorld = new cWorld(WorldName.c_str(), dimEnd, LinkTo);
+			NewWorld = new cWorld(WorldName.c_str(), WorldName.c_str(), dimEnd, LinkTo);
 		}
 		// if the world is called x_end
 		else if ((LowercaseName.size() > EndAppend2.size()) && (LowercaseName.substr(LowercaseName.size() - EndAppend2.size()) == EndAppend2))
@@ -497,11 +502,11 @@ void cRoot::LoadWorlds(cSettingsRepositoryInterface & a_Settings, bool a_IsNewIn
 			{
 				LinkTo = DefaultWorldName;
 			}
-			NewWorld = new cWorld(WorldName.c_str(), dimEnd, LinkTo);
+			NewWorld = new cWorld(WorldName.c_str(), WorldName.c_str(), dimEnd, LinkTo);
 		}
 		else
 		{
-			NewWorld = new cWorld(WorldName.c_str());
+			NewWorld = new cWorld(WorldName.c_str(), WorldName.c_str());
 		}
 		m_WorldsByName[WorldName] = NewWorld;
 	}  // for i - Worlds
@@ -520,8 +525,65 @@ void cRoot::LoadWorlds(cSettingsRepositoryInterface & a_Settings, bool a_IsNewIn
 
 
 
+cRoot::cWorldCreatorThread::cWorldCreatorThread(void) :
+	super(Printf("WorldCreatorThread"))
+{
+}
+
+
+
+
+
+void cRoot::cWorldCreatorThread::Execute(void)
+{
+	while (!m_ShouldTerminate)
+	{
+		m_Event.Wait();
+
+		// Try to process a world
+		cWorldInitializerWorkItem ToWork("", nullptr);
+		bool ShouldWork = m_WorkQueue.TryDequeueItem(ToWork);
+		if (ShouldWork)
+		{
+			ToWork.m_World->InitializeSpawn();
+			cRoot::Get()->NotifyWorldInitialized(ToWork);
+		}
+	}
+}
+
+
+
+
+
+void cRoot::NotifyWorldInitialized(const cWorldInitializerWorkItem & a_Initialized)
+{
+	m_InitializedWorldQueue.EnqueueItem(a_Initialized);
+}
+
+
+
+
+
+// TODO: Add data path as a parameter, check if world name is already in use
+void cRoot::CreateWorld(const AString & a_WorldName)
+{
+	cWorld * World = new cWorld(a_WorldName, a_WorldName);
+	World->Start(*m_DeadlockDetect);
+
+	// Spin off a thread to initialize the world spawn
+	m_WorldCreatorThread.QueueInitializeWorld(a_WorldName, World);
+	/*m_WorldsByName[a_WorldName] = World;
+	World->InitializeSpawn();
+	m_PluginManager->CallHookWorldStarted(*World);*/
+}
+
+
+
+
+
 void cRoot::StartWorlds(cDeadlockDetect & a_DeadlockDetect)
 {
+	cCSLock Lock(m_CSWorldsByName);
 	for (WorldMap::iterator itr = m_WorldsByName.begin(); itr != m_WorldsByName.end(); ++itr)
 	{
 		itr->second->Start(a_DeadlockDetect);
@@ -536,6 +598,7 @@ void cRoot::StartWorlds(cDeadlockDetect & a_DeadlockDetect)
 
 void cRoot::StopWorlds(cDeadlockDetect & a_DeadlockDetect)
 {
+	cCSLock Lock(m_CSWorldsByName);
 	for (WorldMap::iterator itr = m_WorldsByName.begin(); itr != m_WorldsByName.end(); ++itr)
 	{
 		itr->second->Stop(a_DeadlockDetect);
@@ -548,6 +611,7 @@ void cRoot::StopWorlds(cDeadlockDetect & a_DeadlockDetect)
 
 void cRoot::UnloadWorlds(void)
 {
+	cCSLock Lock(m_CSWorldsByName);
 	m_pDefaultWorld = nullptr;
 	for (WorldMap::iterator itr = m_WorldsByName.begin(); itr != m_WorldsByName.end(); ++itr)
 	{
@@ -571,6 +635,7 @@ cWorld * cRoot::GetDefaultWorld()
 
 cWorld * cRoot::GetWorld(const AString & a_WorldName)
 {
+	cCSLock Lock(m_CSWorldsByName);
 	WorldMap::iterator itr = m_WorldsByName.find(a_WorldName);
 	if (itr != m_WorldsByName.end())
 	{
@@ -586,12 +651,27 @@ cWorld * cRoot::GetWorld(const AString & a_WorldName)
 
 bool cRoot::ForEachWorld(cWorldListCallback & a_Callback)
 {
-	for (WorldMap::iterator itr = m_WorldsByName.begin(), itr2 = itr; itr != m_WorldsByName.end(); itr = itr2)
+	// Get a list of the worlds we want to look at
+	std::vector<AString> WorldList;
 	{
-		++itr2;
-		if (itr->second != nullptr)
+		cCSLock Lock(m_CSWorldsByName);
+		for (WorldMap::iterator itr = m_WorldsByName.begin(), itr2 = itr; itr != m_WorldsByName.end(); itr = itr2)
 		{
-			if (a_Callback.Item(itr->second))
+			++itr2;
+			if (itr->second != nullptr)
+			{
+				WorldList.push_back(itr->first);
+			}
+		}
+	}
+
+	// Call the callback on each enumerated world
+	for (auto WorldName : WorldList)
+	{
+		cWorld * World = GetWorld(WorldName);
+		if (World != nullptr)
+		{
+			if (a_Callback.Item(World))
 			{
 				return false;
 			}
@@ -615,6 +695,16 @@ void cRoot::TickCommands(void)
 	for (cCommandQueue::iterator itr = PendingCommands.begin(), end = PendingCommands.end(); itr != end; ++itr)
 	{
 		ExecuteConsoleCommand(itr->m_Command, *(itr->m_Output));
+	}
+
+	// Add any pending worlds
+	cWorldInitializerWorkItem ToWork("", nullptr);
+	bool ShouldAddWorld = m_InitializedWorldQueue.TryDequeueItem(ToWork);
+	if (ShouldAddWorld)
+	{
+		cCSLock Lock(m_CSWorldsByName);
+		m_WorldsByName[ToWork.m_WorldName] = ToWork.m_World;
+		m_PluginManager->CallHookWorldStarted(*ToWork.m_World);
 	}
 }
 
@@ -687,6 +777,7 @@ void cRoot::AuthenticateUser(int a_ClientID, const AString & a_Name, const AStri
 
 int cRoot::GetTotalChunkCount(void)
 {
+	cCSLock Lock(m_CSWorldsByName);
 	int res = 0;
 	for (WorldMap::iterator itr = m_WorldsByName.begin(); itr != m_WorldsByName.end(); ++itr)
 	{
@@ -701,6 +792,7 @@ int cRoot::GetTotalChunkCount(void)
 
 void cRoot::SaveAllChunks(void)
 {
+	cCSLock Lock(m_CSWorldsByName);
 	for (WorldMap::iterator itr = m_WorldsByName.begin(); itr != m_WorldsByName.end(); ++itr)
 	{
 		itr->second->QueueSaveAllChunks();
@@ -714,6 +806,7 @@ void cRoot::SaveAllChunks(void)
 // TODO: Does this need to be run through a queue for thread safety? (or, make SetSavingEnabled atomic)
 void cRoot::SetSavingEnabled(bool a_SavingEnabled)
 {
+	cCSLock Lock(m_CSWorldsByName);
 	for (WorldMap::iterator itr = m_WorldsByName.begin(); itr != m_WorldsByName.end(); ++itr)
 	{
 		itr->second->SetSavingEnabled(a_SavingEnabled);
@@ -726,6 +819,7 @@ void cRoot::SetSavingEnabled(bool a_SavingEnabled)
 
 void cRoot::SendPlayerLists(cPlayer * a_DestPlayer)
 {
+	cCSLock Lock(m_CSWorldsByName);
 	for (const auto & itr : m_WorldsByName)
 	{
 		itr.second->SendPlayerList(a_DestPlayer);
@@ -736,6 +830,7 @@ void cRoot::SendPlayerLists(cPlayer * a_DestPlayer)
 
 void cRoot::BroadcastPlayerListsAddPlayer(const cPlayer & a_Player, const cClientHandle * a_Exclude)
 {
+	cCSLock Lock(m_CSWorldsByName);
 	for (const auto & itr : m_WorldsByName)
 	{
 		itr.second->BroadcastPlayerListAddPlayer(a_Player);
@@ -745,6 +840,7 @@ void cRoot::BroadcastPlayerListsAddPlayer(const cPlayer & a_Player, const cClien
 
 void cRoot::BroadcastChat(const AString & a_Message, eMessageType a_ChatPrefix)
 {
+	cCSLock Lock(m_CSWorldsByName);
 	for (WorldMap::iterator itr = m_WorldsByName.begin(), end = m_WorldsByName.end(); itr != end; ++itr)
 	{
 		itr->second->BroadcastChat(a_Message, nullptr, a_ChatPrefix);
@@ -757,6 +853,7 @@ void cRoot::BroadcastChat(const AString & a_Message, eMessageType a_ChatPrefix)
 
 void cRoot::BroadcastChat(const cCompositeChat & a_Message)
 {
+	cCSLock Lock(m_CSWorldsByName);
 	for (WorldMap::iterator itr = m_WorldsByName.begin(), end = m_WorldsByName.end(); itr != end; ++itr)
 	{
 		itr->second->BroadcastChat(a_Message);
@@ -767,6 +864,7 @@ void cRoot::BroadcastChat(const cCompositeChat & a_Message)
 
 bool cRoot::ForEachPlayer(cPlayerListCallback & a_Callback)
 {
+	cCSLock Lock(m_CSWorldsByName);
 	for (WorldMap::iterator itr = m_WorldsByName.begin(), itr2 = itr; itr != m_WorldsByName.end(); itr = itr2)
 	{
 		++itr2;
@@ -837,6 +935,7 @@ bool cRoot::FindAndDoWithPlayer(const AString & a_PlayerName, cPlayerListCallbac
 
 bool cRoot::DoWithPlayerByUUID(const AString & a_PlayerUUID, cPlayerListCallback & a_Callback)
 {
+	cCSLock Lock(m_CSWorldsByName);
 	for (WorldMap::iterator itr = m_WorldsByName.begin(); itr !=  m_WorldsByName.end(); ++itr)
 	{
 		if (itr->second->DoWithPlayerByUUID(a_PlayerUUID, a_Callback))
@@ -853,6 +952,7 @@ bool cRoot::DoWithPlayerByUUID(const AString & a_PlayerUUID, cPlayerListCallback
 
 bool cRoot::DoWithPlayer(const AString & a_PlayerName, cPlayerListCallback & a_Callback)
 {
+	cCSLock Lock(m_CSWorldsByName);
 	for (auto World : m_WorldsByName)
 	{
 		if (World.second->DoWithPlayer(a_PlayerName, a_Callback))
@@ -982,6 +1082,7 @@ int cRoot::GetPhysicalRAMUsage(void)
 
 void cRoot::LogChunkStats(cCommandOutputCallback & a_Output)
 {
+	cCSLock Lock(m_CSWorldsByName);
 	int SumNumValid = 0;
 	int SumNumDirty = 0;
 	int SumNumInLighting = 0;
