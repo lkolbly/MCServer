@@ -23,6 +23,7 @@
 #include "WebAdmin.h"
 #include "BrewingRecipes.h"
 #include "FurnaceRecipe.h"
+#include "FileLayout.h"
 #include "CraftingRecipes.h"
 #include "Bindings/PluginManager.h"
 #include "MonsterConfig.h"
@@ -147,7 +148,7 @@ void cRoot::Start(std::unique_ptr<cSettingsRepositoryInterface> a_OverridesRepo)
 
 	LOG("Reading server config...");
 
-	m_SettingsFilename = "settings.ini";
+	m_SettingsFilename = cFileLayout::Get().GetConfigPrefix() + "settings.ini";
 	if (a_OverridesRepo->HasValue("Server","ConfigFile"))
 	{
 		m_SettingsFilename = a_OverridesRepo->GetValue("Server","ConfigFile");

@@ -4,6 +4,7 @@
 // Implements the cMojangAPI class representing the various API points provided by Mojang's webservices, and a cache for their results
 
 #include "Globals.h"
+#include "FileLayout.h"
 #include "MojangAPI.h"
 #include "SQLiteCpp/Database.h"
 #include "SQLiteCpp/Statement.h"
@@ -561,7 +562,7 @@ void cMojangAPI::LoadCachesFromDisk(void)
 	try
 	{
 		// Open up the SQLite DB:
-		SQLite::Database db("MojangAPI.sqlite", SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE);
+		SQLite::Database db(cFileLayout::Get().GetDataPrefix() + "MojangAPI.sqlite", SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE);
 		db.exec("CREATE TABLE IF NOT EXISTS PlayerNameToUUID (PlayerName, UUID, DateTime)");
 		db.exec("CREATE TABLE IF NOT EXISTS UUIDToProfile    (UUID, PlayerName, Textures, TexturesSignature, DateTime)");
 
@@ -607,7 +608,7 @@ void cMojangAPI::SaveCachesToDisk(void)
 	try
 	{
 		// Open up the SQLite DB:
-		SQLite::Database db("MojangAPI.sqlite", SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE);
+		SQLite::Database db(cFileLayout::Get().GetDataPrefix() + "MojangAPI.sqlite", SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE);
 		db.exec("CREATE TABLE IF NOT EXISTS PlayerNameToUUID (PlayerName, UUID, DateTime)");
 		db.exec("CREATE TABLE IF NOT EXISTS UUIDToProfile (UUID, PlayerName, Textures, TexturesSignature, DateTime)");
 

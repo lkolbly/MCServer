@@ -3,6 +3,7 @@
 // Implements the helper functions for converting Block ID string to int etc.
 
 #include "Globals.h"
+#include "FileLayout.h"
 #include "IniFile.h"
 #include "Item.h"
 #include "Mobs/Monster.h"
@@ -38,7 +39,7 @@ public:
 		m_bHasRunInit = true;
 
 		cIniFile Ini;
-		if (!Ini.ReadFile("items.ini"))
+		if (!Ini.ReadFile(cFileLayout::Get().GetResourcePrefix() + "items.ini"))
 		{
 			return;
 		}

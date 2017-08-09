@@ -1,12 +1,11 @@
 
 #include "Globals.h"  // NOTE: MSVC stupidness requires this to be the same across all modules
 
+#include "FileLayout.h"
 #include "FurnaceRecipe.h"
 #include "Item.h"
 
 #include <fstream>
-
-#define FURNACE_RECIPE_FILE FILE_IO_PREFIX "furnace.txt"
 
 
 
@@ -55,10 +54,11 @@ void cFurnaceRecipe::ReloadRecipes(void)
 	ClearRecipes();
 	LOGD("Loading furnace recipes...");
 
-	std::ifstream f(FURNACE_RECIPE_FILE, std::ios::in);
+	AString FurnaceRecipeFile = FILE_IO_PREFIX + cFileLayout::Get().GetResourcePrefix() + "furnace.txt";
+	std::ifstream f(FurnaceRecipeFile, std::ios::in);
 	if (!f.good())
 	{
-		LOG("Could not open the furnace recipes file \"%s\". No furnace recipes are available.", FURNACE_RECIPE_FILE);
+		LOG("Could not open the furnace recipes file \"%s\". No furnace recipes are available.", FurnaceRecipeFile.c_str());
 		return;
 	}
 

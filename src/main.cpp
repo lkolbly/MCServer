@@ -1,6 +1,7 @@
 
 #include "Globals.h"  // NOTE: MSVC stupidness requires this to be the same across all modules
 
+#include "FileLayout.h"
 #include "Root.h"
 #include "tclap/CmdLine.h"
 
@@ -362,7 +363,7 @@ static std::unique_ptr<cMemorySettingsRepository> ParseArguments(int argc, char 
 		// Parse the comand line args:
 		TCLAP::CmdLine cmd("Cuberite");
 		TCLAP::ValueArg<int> slotsArg    ("s", "max-players",         "Maximum number of slots for the server to use, overrides setting in setting.ini", false, -1, "number", cmd);
-		TCLAP::ValueArg<AString> confArg ("c", "config-file",         "Config file to use", false, "settings.ini", "string", cmd);
+		TCLAP::ValueArg<AString> confArg ("c", "config-file",         "Config file to use", false, cFileLayout::Get().GetConfigPrefix() + "settings.ini", "string", cmd);
 		TCLAP::MultiArg<int> portsArg    ("p", "port",                "The port number the server should listen to", false, "port", cmd);
 		TCLAP::SwitchArg commLogArg      ("",  "log-comm",            "Log server client communications to file", cmd);
 		TCLAP::SwitchArg commLogInArg    ("",  "log-comm-in",         "Log inbound server client communications to file", cmd);
@@ -492,6 +493,10 @@ int main(int argc, char ** argv)
 			LOGERROR("Could not install the Windows CTRL handler!");
 		}
 	#endif
+
+	// Initialize the file layout engine
+	cFileLayout FileLayout;
+	FileLayout.Autodetect();
 
 	// Make sure m_RunAsService is set correctly before checking it's value
 	ParseArguments(argc, argv);

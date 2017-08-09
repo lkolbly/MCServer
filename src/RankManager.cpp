@@ -4,6 +4,7 @@
 // Implements the cRankManager class that represents the rank manager responsible for assigning permissions and message visuals to players
 
 #include "Globals.h"
+#include "FileLayout.h"
 #include "RankManager.h"
 #include "IniFile.h"
 #include "Protocol/MojangAPI.h"
@@ -382,7 +383,7 @@ protected:
 // cRankManager:
 
 cRankManager::cRankManager(void) :
-	m_DB("Ranks.sqlite", SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE),
+	m_DB(cFileLayout::Get().GetDataPrefix() + "Ranks.sqlite", SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE),
 	m_IsInitialized(false),
 	m_MojangAPI(nullptr)
 {

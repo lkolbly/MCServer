@@ -1,6 +1,7 @@
 
 #include "Globals.h"  // NOTE: MSVC stupidness requires this to be the same across all modules
 
+#include "FileLayout.h"
 #include "MonsterConfig.h"
 #include "Mobs/Monster.h"
 #include "IniFile.h"
@@ -58,7 +59,7 @@ void cMonsterConfig::Initialize()
 {
 	cIniFile MonstersIniFile;
 
-	if (!MonstersIniFile.ReadFile("monsters.ini"))
+	if (!MonstersIniFile.ReadFile(cFileLayout::Get().GetResourcePrefix() + "monsters.ini"))
 	{
 		LOGWARNING("%s: Cannot read monsters.ini file, monster attributes not available", __FUNCTION__);
 		return;

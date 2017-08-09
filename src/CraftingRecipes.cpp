@@ -4,7 +4,9 @@
 // Interfaces to the cCraftingRecipes class representing the storage of crafting recipes
 
 #include "Globals.h"
+
 #include "CraftingRecipes.h"
+#include "FileLayout.h"
 #include "Root.h"
 #include "Bindings/PluginManager.h"
 
@@ -325,7 +327,8 @@ void cCraftingRecipes::LoadRecipes(void)
 
 	// Load the crafting.txt file:
 	cFile f;
-	if (!f.Open("crafting.txt", cFile::fmRead))
+	//if (!f.Open("crafting.txt", cFile::fmRead))
+	if (!f.Open(cFileLayout::Get().GetResourcePrefix() + "crafting.txt", cFile::fmRead))
 	{
 		LOGWARNING("Cannot open file \"crafting.txt\", no crafting recipes will be available!");
 		return;

@@ -3,6 +3,7 @@
 
 #include "WebAdmin.h"
 
+#include "FileLayout.h"
 #include "World.h"
 #include "Entities/Player.h"
 #include "Server.h"
@@ -123,7 +124,7 @@ bool cWebAdmin::Init(void)
 		return false;
 	}
 	m_IsInitialized = true;
-	m_IniFile.WriteFile("webadmin.ini");
+	m_IniFile.WriteFile(cFileLayout::Get().GetConfigPrefix() + "webadmin.ini");
 	return true;
 }
 
@@ -251,7 +252,8 @@ void cWebAdmin::Reload(void)
 bool cWebAdmin::LoadIniFile(void)
 {
 	m_IniFile.Clear();
-	if (!m_IniFile.ReadFile("webadmin.ini"))
+	AString IniFileName = cFileLayout::Get().GetConfigPrefix() + "webadmin.ini";
+	if (!m_IniFile.ReadFile(IniFileName))
 	{
 		LOGWARN("Regenerating webadmin.ini, all settings will be reset");
 		m_IniFile.AddHeaderComment(" This file controls the webadmin feature of Cuberite");
@@ -262,7 +264,7 @@ bool cWebAdmin::LoadIniFile(void)
 		m_IniFile.AddHeaderComment(" Password=admin");
 		m_IniFile.AddHeaderComment(" Please restart Cuberite to apply changes made in this file!");
 		m_IniFile.SetValue("WebAdmin", "Ports", DEFAULT_WEBADMIN_PORTS);
-		m_IniFile.WriteFile("webadmin.ini");
+		m_IniFile.WriteFile(IniFileName);
 	}
 
 	return m_IniFile.GetValueSetB("WebAdmin", "Enabled", true);

@@ -2,10 +2,9 @@
 #include "Globals.h"  // NOTE: MSVC stupidness requires this to be the same across all modules
 
 #include "BrewingRecipes.h"
+#include "FileLayout.h"
 
 #include <fstream>
-
-#define BREWING_RECIPE_FILE "brewing.txt"
 
 
 
@@ -28,10 +27,11 @@ void cBrewingRecipes::ReloadRecipes(void)
 	ClearRecipes();
 	LOGD("Loading brewing recipes...");
 
-	std::ifstream f(BREWING_RECIPE_FILE, std::ios::in);
+	AString BrewingRecipeFile = FILE_IO_PREFIX + cFileLayout::Get().GetResourcePrefix() + "brewing.txt";
+	std::ifstream f(BrewingRecipeFile, std::ios::in);
 	if (!f.good())
 	{
-		LOG("Could not open the brewing recipes file \"%s\". No brewing recipes are available.", BREWING_RECIPE_FILE);
+		LOG("Could not open the brewing recipes file \"%s\". No brewing recipes are available.", BrewingRecipeFile.c_str());
 		return;
 	}
 

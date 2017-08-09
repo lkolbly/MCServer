@@ -36,6 +36,7 @@ SET (SRCS
 	DeadlockDetect.cpp
 	Enchantments.cpp
 	FastRandom.cpp
+	FileLayout.cpp
 	FurnaceRecipe.cpp
 	Globals.cpp
 	IniFile.cpp
@@ -110,6 +111,7 @@ SET (HDRS
 	Endianness.h
 	FastRandom.h
 	ForEachChunkProvider.h
+	FileLayout.h
 	FurnaceRecipe.h
 	Globals.h
 	IniFile.h
