@@ -1,6 +1,7 @@
 
 #include "Globals.h"  // NOTE: MSVC stupidness requires this to be the same across all modules
 
+#include "FileLayout.h"
 #include "Plugin.h"
 
 
@@ -45,8 +46,27 @@ void cPlugin::Unload(void)
 
 AString cPlugin::GetLocalFolder(void) const
 {
-	return std::string("Plugins/") + m_FolderName;
+	return cFileLayout::Get().GetPluginPrefix() + m_FolderName;
 }
+
+
+
+
+
+AString cPlugin::GetDataFolder(void) const
+{
+	return cFileLayout::Get().GetPluginDataPrefix() + m_FolderName;
+}
+
+
+
+
+
+AString cPlugin::GetConfigFolder(void) const
+{
+	return cFileLayout::Get().GetConfigPrefix() + m_FolderName;
+}
+
 
 
 

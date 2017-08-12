@@ -123,6 +123,12 @@ public:
 	/** Returns the folder relative to the MCS Executable, from which the plugin is loaded. */
 	AString GetLocalFolder(void) const;
 
+	/** Returns the relative path to where plugins should store their data */
+	AString GetDataFolder(void) const;
+
+	/** Returns the relative path to where plugins should store their configuration files */
+	AString GetConfigFolder(void) const;
+
 	/** Returns the error encountered while loading the plugin. Only valid if m_Status == psError. */
 	const AString & GetLoadError(void) const { return m_LoadError; }
 
