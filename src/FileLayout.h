@@ -6,7 +6,7 @@
 class cFileLayoutProvider
 {
 public:
-	virtual ~cFileLayoutProvider() {};
+	virtual ~cFileLayoutProvider() {}
 
 	/** The path to the world data. World data should only be accessed by
 	cWorld and classes storing per-world data. You know who you are. */
