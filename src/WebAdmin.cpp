@@ -168,7 +168,7 @@ void cWebAdmin::Stop(void)
 
 bool cWebAdmin::LoadLoginPage(void)
 {
-	cFile File(FILE_IO_PREFIX "webadmin/login_template.html", cFile::fmRead);
+	cFile File(FILE_IO_PREFIX + cFileLayout::Get().GetResourcePrefix() + "webadmin/login_template.html", cFile::fmRead);
 	if (!File.IsOpen())
 	{
 		return false;
@@ -223,16 +223,17 @@ void cWebAdmin::Reload(void)
 	}
 	m_TemplateScript.Create();
 	m_TemplateScript.RegisterAPILibs();
-	if (!m_TemplateScript.LoadFile(FILE_IO_PREFIX "webadmin/template.lua"))
+	AString TemplateFileName = FILE_IO_PREFIX + cFileLayout::Get().GetResourcePrefix() + "webadmin/template.lua";
+	if (!m_TemplateScript.LoadFile(TemplateFileName))
 	{
-		LOGWARN("Could not load WebAdmin template \"%s\". WebAdmin will not work properly!", FILE_IO_PREFIX "webadmin/template.lua");
+		LOGWARN("Could not load WebAdmin template \"%s\". WebAdmin will not work properly!", TemplateFileName.c_str());
 		m_TemplateScript.Close();
 	}
 
 	// Load the login template, provide a fallback default if not found:
 	if (!LoadLoginPage())
 	{
-		LOGWARN("Could not load WebAdmin login page \"%s\", using fallback template.", FILE_IO_PREFIX "webadmin/login_template.html");
+		LOGWARN("Could not load WebAdmin login page \"%s\", using fallback template.", (FILE_IO_PREFIX + cFileLayout::Get().GetResourcePrefix() + "webadmin/login_template.html").c_str());
 
 		// Set the fallback:
 		m_LoginPage = \
@@ -407,7 +408,7 @@ void cWebAdmin::HandleFileRequest(cHTTPServerConnection & a_Connection, cHTTPInc
 	// Read the file contents and guess its mime-type, based on the extension:
 	AString Content = "<h2>404 Not Found</h2>";
 	AString ContentType;
-	AString Path = Printf(FILE_IO_PREFIX "webadmin/files/%s", FileURL.c_str());
+	AString Path = Printf("%swebadmin/files/%s", cFileLayout::Get().GetResourcePrefix().c_str(), FileURL.c_str());
 	if (cFile::IsFile(Path))
 	{
 		cFile File(Path, cFile::fmRead);

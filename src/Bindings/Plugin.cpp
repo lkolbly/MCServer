@@ -46,7 +46,7 @@ void cPlugin::Unload(void)
 
 AString cPlugin::GetLocalFolder(void) const
 {
-	return cFileLayout::Get().GetPluginPrefix() + m_FolderName;
+	return cFileLayout::Get().GetPluginPrefix(m_Name);
 }
 
 
@@ -55,7 +55,7 @@ AString cPlugin::GetLocalFolder(void) const
 
 AString cPlugin::GetDataFolder(void) const
 {
-	return cFileLayout::Get().GetPluginDataPrefix() + m_FolderName;
+	return cFileLayout::Get().GetPluginDataPrefix(m_Name);
 }
 
 
@@ -64,7 +64,7 @@ AString cPlugin::GetDataFolder(void) const
 
 AString cPlugin::GetConfigFolder(void) const
 {
-	return cFileLayout::Get().GetConfigPrefix() + m_FolderName;
+	return cFileLayout::Get().GetPluginConfigPrefix(m_Name);
 }
 
 

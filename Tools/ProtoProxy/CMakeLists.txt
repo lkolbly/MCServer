@@ -28,6 +28,7 @@ set_exe_flags()
 # Include the shared files:
 set(SHARED_SRC
 	../../src/ByteBuffer.cpp
+	../../src/FileLayout.cpp
 	../../src/StringUtils.cpp
 	../../src/PolarSSL++/AesCfb128Decryptor.cpp
 	../../src/PolarSSL++/AesCfb128Encryptor.cpp

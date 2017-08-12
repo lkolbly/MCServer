@@ -7,6 +7,7 @@
 #include "Mobs/Wolf.h"
 #include "../BoundingBox.h"
 #include "../ChatColor.h"
+#include "../FileLayout.h"
 #include "../Server.h"
 #include "../UI/InventoryWindow.h"
 #include "../UI/WindowOwner.h"
@@ -2081,7 +2082,7 @@ bool cPlayer::LoadFromDisk(cWorldPtr & a_World)
 	// Load from the old-style name-based file, if allowed:
 	if (cRoot::Get()->GetServer()->ShouldLoadNamedPlayerData())
 	{
-		AString OldStyleFileName = Printf("players/%s.json", GetName().c_str());
+		AString OldStyleFileName = Printf("%s%s.json", cFileLayout::Get().GetPlayerPrefix().c_str(), GetName().c_str());
 		if (LoadFromFile(OldStyleFileName, a_World))
 		{
 			// Save in new format and remove the old file
@@ -2209,8 +2210,8 @@ bool cPlayer::LoadFromFile(const AString & a_FileName, cWorldPtr & a_World)
 
 bool cPlayer::SaveToDisk()
 {
-	cFile::CreateFolder(FILE_IO_PREFIX + AString("players/"));  // Create the "players" folder, if it doesn't exist yet (#1268)
-	cFile::CreateFolder(FILE_IO_PREFIX + AString("players/") + m_UUID.substr(0, 2));
+	cFile::CreateFolder(FILE_IO_PREFIX + AString(cFileLayout::Get().GetPlayerPrefix()));  // Create the "players" folder, if it doesn't exist yet (#1268)
+	cFile::CreateFolder(FILE_IO_PREFIX + AString(cFileLayout::Get().GetPlayerPrefix()) + m_UUID.substr(0, 2));
 
 	// create the JSON data
 	Json::Value JSON_PlayerPosition;
@@ -2874,7 +2875,7 @@ AString cPlayer::GetUUIDFileName(const AString & a_UUID)
 	AString UUID = cMojangAPI::MakeUUIDDashed(a_UUID);
 	ASSERT(UUID.length() == 36);
 
-	AString res("players/");
+	AString res(cFileLayout::Get().GetPlayerPrefix());
 	res.append(UUID, 0, 2);
 	res.push_back('/');
 	res.append(UUID, 2, AString::npos);

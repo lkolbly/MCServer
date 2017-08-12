@@ -1,6 +1,7 @@
 
 #include "Globals.h"
 
+#include "FileLayout.h"
 #include "LoggerListeners.h"
 
 #if defined(_WIN32)
@@ -262,7 +263,8 @@ public:
 		cFile::CreateFolder(FILE_IO_PREFIX "logs");
 		bool success = m_File.Open(
 			FILE_IO_PREFIX + Printf(
-				"logs/LOG_%d.txt",
+				"%sLOG_%d.txt",
+				cFileLayout::Get().GetLogsPrefix().c_str(),
 				std::chrono::duration_cast<std::chrono::duration<int, std::ratio<1>>>(
 					std::chrono::system_clock::now().time_since_epoch()
 				).count()

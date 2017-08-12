@@ -13,6 +13,7 @@ set_exe_flags()
 
 # Include the shared files:
 set(SHARED_SRC
+	../../src/FileLayout.cpp
 	../../src/Logger.cpp
 	../../src/LoggerListeners.cpp
 	../../src/OSSupport/CriticalSection.cpp

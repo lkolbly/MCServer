@@ -7,6 +7,7 @@
 #include "PieceStructuresGen.h"
 #include "PrefabStructure.h"
 #include "PieceGeneratorBFSTree.h"
+#include "FileLayout.h"
 #include "IniFile.h"
 #include "../Stopwatch.h"
 
@@ -138,7 +139,7 @@ bool cPieceStructuresGen::Initialize(const AString & a_Prefabs, int a_SeaLevel, 
 	auto structures = StringSplitAndTrim(a_Prefabs, "|");
 	for (const auto & s: structures)
 	{
-		auto fileName = Printf("Prefabs%cPieceStructures%c%s.cubeset", cFile::PathSeparator, cFile::PathSeparator, s.c_str());
+		auto fileName = Printf("%sPieceStructures%c%s.cubeset", cFileLayout::Get().GetPrefabPrefix().c_str(), cFile::PathSeparator, s.c_str());
 		if (!cFile::IsFile(fileName))
 		{
 			fileName.append(".gz");

@@ -31,6 +31,7 @@ set_exe_flags()
 
 # Include the shared files:
 set(SHARED_SRC
+	../../src/FileLayout.cpp
 	../../src/StringCompression.cpp
 	../../src/StringUtils.cpp
 	../../src/LoggerListeners.cpp
