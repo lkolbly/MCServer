@@ -260,7 +260,7 @@ public:
 	bool Open()
 	{
 		// Assume creation succeeds, as the API does not provide a way to tell if the folder exists.
-		cFile::CreateFolder(FILE_IO_PREFIX "logs");
+		cFile::CreateFolder(cFileLayout::Get().GetLogsPrefix());
 		bool success = m_File.Open(
 			FILE_IO_PREFIX + Printf(
 				"%sLOG_%d.txt",

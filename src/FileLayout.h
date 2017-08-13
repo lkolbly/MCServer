@@ -66,8 +66,8 @@ public:
 class cFileLayoutLegacy : public cFileLayoutProvider
 {
 public:
-	virtual AString GetLogsPrefix(void) override { return "./logs"; }
-	virtual AString GetPlayerPrefix(void) override { return "./players/"; }
+	virtual AString GetLogsPrefix(void) override { return "logs/"; }
+	virtual AString GetPlayerPrefix(void) override { return "players/"; }
 	virtual AString GetWorldDataPrefix(void) override  { return "./"; }
 	virtual AString GetConfigPrefix(void) override     { return "./"; }
 	virtual AString GetResourcePrefix(void) override   { return "./"; }
@@ -81,8 +81,8 @@ public:
 class cFileLayoutArmadillo : public cFileLayoutProvider
 {
 public:
-	virtual AString GetLogsPrefix(void) override { return "./logs"; }
-	virtual AString GetPlayerPrefix(void) override { return "./players/"; }
+	virtual AString GetLogsPrefix(void) override { return "Logs/"; }
+	virtual AString GetPlayerPrefix(void) override { return "Players/"; }
 	virtual AString GetWorldDataPrefix(void) override  { return "Worlds/"; }
 	virtual AString GetConfigPrefix(void) override     { return "Config/"; }
 	virtual AString GetResourcePrefix(void) override   { return "Resources/"; }
