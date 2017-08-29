@@ -85,7 +85,7 @@ cPlayer::cPlayer(cClientHandlePtr a_Client, const AString & a_PlayerName) :
 	m_bIsInBed(false),
 	m_TicksUntilNextSave(PLAYER_INVENTORY_SAVE_INTERVAL),
 	m_bIsTeleporting(false),
-	m_UUID((a_Client != nullptr) ? a_Client->GetUUID() : ""),
+	m_UUID((a_Client != nullptr) ? a_Client->GetUUID() : cUUID{}),
 	m_CustomName(""),
 	m_SkinParts(0),
 	m_MainHand(mhRight)
@@ -150,12 +150,12 @@ cPlayer::cPlayer(cClientHandlePtr a_Client, const AString & a_PlayerName) :
 
 
 
-bool cPlayer::Initialize(cWorld & a_World)
+bool cPlayer::Initialize(OwnedEntity a_Self, cWorld & a_World)
 {
 	UNUSED(a_World);
 	ASSERT(GetWorld() != nullptr);
 	ASSERT(GetParentChunk() == nullptr);
-	GetWorld()->AddPlayer(this);
+	GetWorld()->AddPlayer(std::unique_ptr<cPlayer>(static_cast<cPlayer *>(a_Self.release())));
 
 	cPluginManager::Get()->CallHookSpawnedEntity(*GetWorld(), *this);
 
@@ -1197,7 +1197,7 @@ void cPlayer::Respawn(void)
 
 	if (GetWorld() != m_SpawnWorld)
 	{
-		MoveToWorld(m_SpawnWorld, false, GetLastBedPos());
+		ScheduleMoveToWorld(m_SpawnWorld, GetLastBedPos(), false);
 	}
 	else
 	{
@@ -1322,10 +1322,16 @@ cTeam * cPlayer::UpdateTeam(void)
 
 void cPlayer::OpenWindow(cWindow & a_Window)
 {
+	if (cRoot::Get()->GetPluginManager()->CallHookPlayerOpeningWindow(*this, a_Window))
+	{
+		return;
+	}
+
 	if (&a_Window != m_CurrentWindow)
 	{
 		CloseWindow(false);
 	}
+
 	a_Window.OpenedByPlayer(*this);
 	m_CurrentWindow = &a_Window;
 	a_Window.SendWholeWindow(*GetClientHandle());
@@ -2004,7 +2010,9 @@ bool cPlayer::DoMoveToWorld(cWorld * a_World, bool a_ShouldSendRespawn, Vector3d
 		GetWorld()->BroadcastDestroyEntity(*this);
 
 		// Remove player from world
-		GetWorld()->RemovePlayer(this, false);
+		// Make sure that RemovePlayer didn't return a valid smart pointer, due to the second parameter being false
+		// We remain valid and not destructed after this call
+		VERIFY(!GetWorld()->RemovePlayer(*this, false));
 
 		// Set position to the new position
 		SetPosition(a_NewPosition);
@@ -2046,8 +2054,10 @@ bool cPlayer::DoMoveToWorld(cWorld * a_World, bool a_ShouldSendRespawn, Vector3d
 			a_OldWorld.GetName().c_str(), a_World->GetName().c_str(),
 			ParentChunk->GetPosX(), ParentChunk->GetPosZ()
 		);
-		ParentChunk->RemoveEntity(this);
-		a_World->AddPlayer(this, &a_OldWorld);  // New world will take over and announce client at its next tick
+
+		// New world will take over and announce client at its next tick
+		auto PlayerPtr = static_cast<cPlayer *>(ParentChunk->RemoveEntity(*this).release());
+		a_World->AddPlayer(std::unique_ptr<cPlayer>(PlayerPtr), &a_OldWorld);
 	});
 
 	return true;
@@ -2068,7 +2078,7 @@ bool cPlayer::LoadFromDisk(cWorldPtr & a_World)
 	}
 
 	// Load from the offline UUID file, if allowed:
-	AString OfflineUUID = cClientHandle::GenerateOfflineUUID(GetName());
+	cUUID OfflineUUID = cClientHandle::GenerateOfflineUUID(GetName());
 	const char * OfflineUsage = " (unused)";
 	if (cRoot::Get()->GetServer()->ShouldLoadOfflinePlayerData())
 	{
@@ -2096,7 +2106,7 @@ bool cPlayer::LoadFromDisk(cWorldPtr & a_World)
 
 	// None of the files loaded successfully
 	LOG("Player data file not found for %s (%s, offline %s%s), will be reset to defaults.",
-		GetName().c_str(), m_UUID.c_str(), OfflineUUID.c_str(), OfflineUsage
+		GetName().c_str(), m_UUID.ToShortString().c_str(), OfflineUUID.ToShortString().c_str(), OfflineUsage
 	);
 
 	if (a_World == nullptr)
@@ -2363,7 +2373,7 @@ void cPlayer::TickBurning(cChunk & a_Chunk)
 
 void cPlayer::HandleFood(void)
 {
-	// Ref.: http://minecraft.gamepedia.com/Hunger
+	// Ref.: https://minecraft.gamepedia.com/Hunger
 
 	if (IsGameModeCreative() || IsGameModeSpectator())
 	{
@@ -2870,10 +2880,9 @@ void cPlayer::RemoveClientHandle(void)
 
 
 
-AString cPlayer::GetUUIDFileName(const AString & a_UUID)
+AString cPlayer::GetUUIDFileName(const cUUID & a_UUID)
 {
-	AString UUID = cMojangAPI::MakeUUIDDashed(a_UUID);
-	ASSERT(UUID.length() == 36);
+	AString UUID = a_UUID.ToLongString();
 
 	AString res(cFileLayout::Get().GetPlayerPrefix());
 	res.append(UUID, 0, 2);

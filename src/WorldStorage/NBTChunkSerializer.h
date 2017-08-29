@@ -1,4 +1,4 @@
-
+﻿
 // NBTChunkSerializer.h
 
 // Declares the cNBTChunkSerializer class that is used for saving individual chunks into NBT format used by Anvil
@@ -47,6 +47,7 @@ class cTNTEntity;
 class cExpOrb;
 class cHangingEntity;
 class cItemFrame;
+class cLeashKnot;
 class cPainting;
 
 
@@ -54,7 +55,7 @@ class cPainting;
 
 
 class cNBTChunkSerializer :
-	public cChunkDataSeparateCollector
+	public cChunkDataCopyCollector
 {
 public:
 	cChunkDef::BiomeMap m_Biomes;
@@ -68,15 +69,12 @@ public:
 	/** Close NBT tags that we've opened */
 	void Finish(void);
 
-	bool IsLightValid(void) const {return m_IsLightValid; }
+	bool IsLightValid(void) const { return m_IsLightValid; }
 
 protected:
 
-	/* From cChunkDataSeparateCollector we inherit:
-	- m_BlockTypes[]
-	- m_BlockMetas[]
-	- m_BlockLight[]
-	- m_BlockSkyLight[] */
+	/* From cChunkDataCopyCollector we inherit:
+	- cChunkData m_Data */
 
 	cFastNBTWriter & m_Writer;
 
@@ -123,6 +121,7 @@ protected:
 	void AddTNTEntity         (cTNTEntity * a_TNT);
 	void AddExpOrbEntity      (cExpOrb * a_ExpOrb);
 	void AddItemFrameEntity   (cItemFrame * a_ItemFrame);
+	void AddLeashKnotEntity   (cLeashKnot * a_LeashKnot);
 	void AddPaintingEntity    (cPainting * a_Painting);
 
 	void AddMinecartChestContents(cMinecartWithChest * a_Minecart);

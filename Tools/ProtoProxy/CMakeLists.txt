@@ -30,6 +30,7 @@ set(SHARED_SRC
 	../../src/ByteBuffer.cpp
 	../../src/FileLayout.cpp
 	../../src/StringUtils.cpp
+	../../src/UUID.cpp
 	../../src/PolarSSL++/AesCfb128Decryptor.cpp
 	../../src/PolarSSL++/AesCfb128Encryptor.cpp
 	../../src/PolarSSL++/CryptoKey.cpp
@@ -42,6 +43,7 @@ set(SHARED_SRC
 set(SHARED_HDR
 	../../src/ByteBuffer.h
 	../../src/StringUtils.h
+	../../src/UUID.h
 	../../src/PolarSSL++/AesCfb128Decryptor.h
 	../../src/PolarSSL++/AesCfb128Encryptor.h
 	../../src/PolarSSL++/CryptoKey.h

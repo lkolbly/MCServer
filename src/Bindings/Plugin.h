@@ -69,6 +69,7 @@ public:
 	virtual bool OnKilled                   (cEntity & a_Victim, TakeDamageInfo & a_TDI, AString & a_DeathMessage) = 0;
 	virtual bool OnKilling                  (cEntity & a_Victim, cEntity * a_Killer, TakeDamageInfo & a_TDI) = 0;
 	virtual bool OnLogin                    (cClientHandle & a_Client, UInt32 a_ProtocolVersion, const AString & a_Username) = 0;
+	virtual bool OnLoginForge               (cClientHandle & a_Client, const AStringMap & a_Mods) = 0;
 	virtual bool OnPlayerAnimation          (cPlayer & a_Player, int a_Animation) = 0;
 	virtual bool OnPlayerBreakingBlock      (cPlayer & a_Player, int a_BlockX, int a_BlockY, int a_BlockZ, char a_BlockFace, BLOCKTYPE a_BlockType, NIBBLETYPE a_BlockMeta) = 0;
 	virtual bool OnPlayerBrokenBlock        (cPlayer & a_Player, int a_BlockX, int a_BlockY, int a_BlockZ, char a_BlockFace, BLOCKTYPE a_BlockType, NIBBLETYPE a_BlockMeta) = 0;
@@ -80,6 +81,7 @@ public:
 	virtual bool OnPlayerJoined             (cPlayer & a_Player) = 0;
 	virtual bool OnPlayerLeftClick          (cPlayer & a_Player, int a_BlockX, int a_BlockY, int a_BlockZ, char a_BlockFace, char a_Status) = 0;
 	virtual bool OnPlayerMoving             (cPlayer & a_Player, const Vector3d & a_OldPosition, const Vector3d & a_NewPosition) = 0;
+	virtual bool OnPlayerOpeningWindow(cPlayer & a_Player, cWindow & a_Window) = 0;
 	virtual bool OnPlayerPlacedBlock        (cPlayer & a_Player, const sSetBlock & a_BlockChange) = 0;
 	virtual bool OnPlayerPlacingBlock       (cPlayer & a_Player, const sSetBlock & a_BlockChange) = 0;
 	virtual bool OnPlayerRightClick         (cPlayer & a_Player, int a_BlockX, int a_BlockY, int a_BlockZ, char a_BlockFace, int a_CursorX, int a_CursorY, int a_CursorZ) = 0;

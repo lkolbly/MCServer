@@ -90,6 +90,7 @@ public:
 	virtual bool OnKilled                   (cEntity & a_Victim, TakeDamageInfo & a_TDI, AString & a_DeathMessage) override;
 	virtual bool OnKilling                  (cEntity & a_Victim, cEntity * a_Killer, TakeDamageInfo & a_TDI) override;
 	virtual bool OnLogin                    (cClientHandle & a_Client, UInt32 a_ProtocolVersion, const AString & a_Username) override;
+	virtual bool OnLoginForge               (cClientHandle & a_Client, const AStringMap & a_Mods) override;
 	virtual bool OnPlayerAnimation          (cPlayer & a_Player, int a_Animation) override;
 	virtual bool OnPlayerBreakingBlock      (cPlayer & a_Player, int a_BlockX, int a_BlockY, int a_BlockZ, char a_BlockFace, BLOCKTYPE a_BlockType, NIBBLETYPE a_BlockMeta) override;
 	virtual bool OnPlayerBrokenBlock        (cPlayer & a_Player, int a_BlockX, int a_BlockY, int a_BlockZ, char a_BlockFace, BLOCKTYPE a_BlockType, NIBBLETYPE a_BlockMeta) override;
@@ -101,6 +102,7 @@ public:
 	virtual bool OnPlayerJoined             (cPlayer & a_Player) override;
 	virtual bool OnPlayerLeftClick          (cPlayer & a_Player, int a_BlockX, int a_BlockY, int a_BlockZ, char a_BlockFace, char a_Status) override;
 	virtual bool OnPlayerMoving             (cPlayer & a_Player, const Vector3d & a_OldPosition, const Vector3d & a_NewPosition) override;
+	virtual bool OnPlayerOpeningWindow(cPlayer & a_Player, cWindow & a_Window) override;
 	virtual bool OnPlayerPlacedBlock        (cPlayer & a_Player, const sSetBlock & a_BlockChange) override;
 	virtual bool OnPlayerPlacingBlock       (cPlayer & a_Player, const sSetBlock & a_BlockChange) override;
 	virtual bool OnPlayerRightClick         (cPlayer & a_Player, int a_BlockX, int a_BlockY, int a_BlockZ, char a_BlockFace, int a_CursorX, int a_CursorY, int a_CursorZ) override;

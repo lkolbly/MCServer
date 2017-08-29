@@ -796,6 +796,10 @@ cPluginManager.AddHook(cPluginManager.HOOK_CHAT, OnChatMessage);
 			{
 				Notes = "Called when a Login packet is sent to the client, before the client is queued for authentication.",
 			},
+			HOOK_LOGIN_FORGE =
+			{
+				Notes = "Called when a Forge client has sent its ModList to the server, during the login handshake.",
+			},
 			HOOK_PLAYER_ANIMATION =
 			{
 				Notes = "Called when a client send the Animation packet.",
@@ -839,6 +843,10 @@ cPluginManager.AddHook(cPluginManager.HOOK_CHAT, OnChatMessage);
 			HOOK_PLAYER_MOVING =
 			{
 				Notes = "Called when the player has moved and the movement is now being applied.",
+			},
+			HOOK_PLAYER_OPENING_WINDOW =
+			{
+				Notes = "Called when the player is about to open a window. The plugin can return true to cancel the window opening.",
 			},
 			HOOK_PLAYER_PLACED_BLOCK =
 			{

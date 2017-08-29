@@ -18,7 +18,7 @@ return
 			Each world runs several separate threads used for various housekeeping purposes, the most important
 			of those is the Tick thread. This thread updates the game logic 20 times per second, and it is
 			the thread where all the gameplay actions are evaluated. Liquid physics, entity interactions,
-			player ovement etc., all are applied in this thread.</p>
+			player movement etc., all are applied in this thread.</p>
 			<p>
 			Additional threads include the generation thread (generates new chunks as needed, storage thread
 			(saves and loads chunk from the disk), lighting thread (updates block light values) and the
@@ -901,7 +901,7 @@ function OnAllChunksAvailable()</pre> All return values from the callbacks are i
 				{
 					{
 						Name = "PlayerUUID",
-						Type = "string",
+						Type = "cUUID",
 					},
 					{
 						Name = "CallbackFunction",
@@ -1820,7 +1820,7 @@ function OnAllChunksAvailable()</pre> All return values from the callbacks are i
 				{
 					{
 						Name = "ShrapnelLevel",
-						Type = "Globals#eShrapnelLevel",
+						Type = "eShrapnelLevel",
 					},
 				},
 				Notes = "Returns the shrapnel level, representing the block types that are propelled outwards following an explosion. Based on this value and a random picker, blocks are selectively converted to physics entities (FallingSand) and flung outwards.",
@@ -2830,7 +2830,7 @@ function OnAllChunksAvailable()</pre> All return values from the callbacks are i
 				{
 					{
 						Name = "ShrapnelLevel",
-						Type = "Globals#eShrapnelLevel",
+						Type = "eShrapnelLevel",
 					},
 				},
 				Notes = "Sets the Shrapnel level of the world.",
@@ -3353,53 +3353,77 @@ function OnAllChunksAvailable()</pre> All return values from the callbacks are i
 			},
 			WakeUpSimulators =
 			{
-				Params =
 				{
+					Params =
 					{
-						Name = "BlockX",
-						Type = "number",
+						{
+							Name = "Block",
+							Type = "Vector3i",
+						},
 					},
-					{
-						Name = "BlockY",
-						Type = "number",
-					},
-					{
-						Name = "BlockZ",
-						Type = "number",
-					},
+					Notes = "Wakes up the simulators for the specified block.",
 				},
-				Notes = "Wakes up the simulators for the specified block.",
+				{
+					Params =
+					{
+						{
+							Name = "BlockX",
+							Type = "number",
+						},
+						{
+							Name = "BlockY",
+							Type = "number",
+						},
+						{
+							Name = "BlockZ",
+							Type = "number",
+						},
+					},
+					Notes = "Wakes up the simulators for the specified block. (DEPRECATED, use vector-parametered version)",
+				},
 			},
 			WakeUpSimulatorsInArea =
 			{
-				Params =
 				{
+					Params =
 					{
-						Name = "MinBlockX",
-						Type = "number",
+						{
+							Name = "Area",
+							Type = "cCuboid",
+						},
 					},
-					{
-						Name = "MaxBlockX",
-						Type = "number",
-					},
-					{
-						Name = "MinBlockY",
-						Type = "number",
-					},
-					{
-						Name = "MaxBlockY",
-						Type = "number",
-					},
-					{
-						Name = "MinBlockZ",
-						Type = "number",
-					},
-					{
-						Name = "MaxBlockZ",
-						Type = "number",
-					},
+					Notes = "Wakes up the simulators for all the blocks in the specified area (edges inclusive).",
 				},
-				Notes = "Wakes up the simulators for all the blocks in the specified area (edges inclusive).",
+				{
+					Params =
+					{
+						{
+							Name = "MinBlockX",
+							Type = "number",
+						},
+						{
+							Name = "MaxBlockX",
+							Type = "number",
+						},
+						{
+							Name = "MinBlockY",
+							Type = "number",
+						},
+						{
+							Name = "MaxBlockY",
+							Type = "number",
+						},
+						{
+							Name = "MinBlockZ",
+							Type = "number",
+						},
+						{
+							Name = "MaxBlockZ",
+							Type = "number",
+						},
+					},
+					Notes = "Wakes up the simulators for all the blocks in the specified area (edges inclusive). (DEPRECATED, use vector-parametered version)",
+				},
 			},
 		},
 		AdditionalInfo =

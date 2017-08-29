@@ -523,7 +523,7 @@ void cBlockHandler::DropBlock(cChunkInterface & a_ChunkInterface, cWorldInterfac
 				case E_BLOCK_BED:
 				{
 					// Need to access the bed entity to get the color for the item damage
-					ConvertToPickups(a_Digger, Pickups, Meta, a_BlockX, a_BlockY, a_BlockZ);
+					ConvertToPickups(a_WorldInterface, Pickups, Meta, a_BlockX, a_BlockY, a_BlockZ);
 				}
 				default: Pickups.Add(m_BlockType, 1, Meta); break;
 			}
@@ -531,7 +531,7 @@ void cBlockHandler::DropBlock(cChunkInterface & a_ChunkInterface, cWorldInterfac
 		else if (m_BlockType == E_BLOCK_BED)
 		{
 			// Need to access the bed entity to get the color for the item damage
-			ConvertToPickups(a_Digger, Pickups, Meta, a_BlockX, a_BlockY, a_BlockZ);
+			ConvertToPickups(a_WorldInterface, Pickups, Meta, a_BlockX, a_BlockY, a_BlockZ);
 		}
 		else
 		{
@@ -650,7 +650,7 @@ void cBlockHandler::Check(cChunkInterface & a_ChunkInterface, cBlockPluginInterf
 		// Wake up the simulators for this block:
 		int BlockX = a_RelX + a_Chunk.GetPosX() * cChunkDef::Width;
 		int BlockZ = a_RelZ + a_Chunk.GetPosZ() * cChunkDef::Width;
-		a_Chunk.GetWorld()->GetSimulatorManager()->WakeUp(BlockX, a_RelY, BlockZ, &a_Chunk);
+		a_Chunk.GetWorld()->GetSimulatorManager()->WakeUp({BlockX, a_RelY, BlockZ}, &a_Chunk);
 	}
 }
 
