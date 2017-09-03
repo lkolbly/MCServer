@@ -2221,7 +2221,7 @@ bool cPlayer::LoadFromFile(const AString & a_FileName, cWorldPtr & a_World)
 bool cPlayer::SaveToDisk()
 {
 	cFile::CreateFolder(FILE_IO_PREFIX + AString(cFileLayout::Get().GetPlayerPrefix()));  // Create the "players" folder, if it doesn't exist yet (#1268)
-	cFile::CreateFolder(FILE_IO_PREFIX + AString(cFileLayout::Get().GetPlayerPrefix()) + m_UUID.substr(0, 2));
+	cFile::CreateFolder(FILE_IO_PREFIX + AString(cFileLayout::Get().GetPlayerPrefix()) + m_UUID.ToShortString().substr(0, 2));
 
 	// create the JSON data
 	Json::Value JSON_PlayerPosition;
