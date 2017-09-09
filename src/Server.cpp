@@ -4,6 +4,7 @@
 
 #include "Server.h"
 #include "ClientHandle.h"
+#include "FileLayout.h"
 #include "Mobs/Monster.h"
 #include "Root.h"
 #include "World.h"
@@ -171,7 +172,7 @@ bool cServer::InitServer(cSettingsRepositoryInterface & a_Settings, bool a_Shoul
 	m_bIsHardcore = a_Settings.GetValueSetB("Server", "HardcoreEnabled", false);
 	m_bAllowMultiLogin = a_Settings.GetValueSetB("Server", "AllowMultiLogin", false);
 
-	m_FaviconData = Base64Encode(cFile::ReadWholeFile(FILE_IO_PREFIX + AString("favicon.png")));  // Will return empty string if file nonexistant; client doesn't mind
+	m_FaviconData = Base64Encode(cFile::ReadWholeFile(FILE_IO_PREFIX + cFileLayout::Get().GetResourcePrefix() + "favicon.png"));  // Will return empty string if file nonexistant; client doesn't mind
 
 	if (m_bIsConnected)
 	{
