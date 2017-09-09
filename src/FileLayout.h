@@ -10,7 +10,7 @@ public:
 
 	/** The path to the world data. World data should only be accessed by
 	cWorld and classes storing per-world data. You know who you are. */
-	virtual AString GetWorldDataPrefix(void) = 0;
+	virtual AString GetWorldDataPath(const AString & a_WorldName) = 0;
 
 	/** The path to player data. */
 	virtual AString GetPlayerPrefix(void) = 0;
@@ -68,7 +68,7 @@ class cFileLayoutLegacy : public cFileLayoutProvider
 public:
 	virtual AString GetLogsPrefix(void) override { return "logs/"; }
 	virtual AString GetPlayerPrefix(void) override { return "players/"; }
-	virtual AString GetWorldDataPrefix(void) override  { return "./"; }
+	virtual AString GetWorldDataPath(const AString & a_WorldName) override  { return "./" + a_WorldName; }
 	virtual AString GetConfigPrefix(void) override     { return "./"; }
 	virtual AString GetResourcePrefix(void) override   { return "./"; }
 	virtual AString GetPluginConfigPrefix(const AString & a_Plugin) override { return "./"; }
@@ -83,7 +83,7 @@ class cFileLayoutArmadillo : public cFileLayoutProvider
 public:
 	virtual AString GetLogsPrefix(void) override { return "Logs/"; }
 	virtual AString GetPlayerPrefix(void) override { return "Players/"; }
-	virtual AString GetWorldDataPrefix(void) override  { return "Worlds/"; }
+	virtual AString GetWorldDataPath(const AString & a_WorldName) override  { return "Worlds/" + a_WorldName; }
 	virtual AString GetConfigPrefix(void) override     { return "Config/"; }
 	virtual AString GetResourcePrefix(void) override   { return "Resources/"; }
 	virtual AString GetPluginConfigPrefix(const AString & a_Plugin) override { return "Config/"; }
